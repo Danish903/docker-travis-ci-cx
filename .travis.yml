@@ -1,0 +1,22 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t ci/test  -f  ./client/Dockerfile.dev ./client
+
+script:
+  - docker run ci/test npm  test -- --coverage
+
+after_success:
+  - docker build -t dan/client ./client
+  - docker build -t dan/nginx ./nginx
+  - docker build -t dan/server ./server
+  - docker build -t dan/worker ./worker
+
+  - echo "$DOCK_PASS" | docker login -u "$DOCK_ID" --password-stdin
+
+  - docker push dan/client
+  - docker push dan/nginx
+  - docker push dan/server
+  - docker push dan/worker
